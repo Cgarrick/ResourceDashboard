@@ -34,6 +34,16 @@
             display: block;
             border-radius: 0.75rem; /* rounded-xl */
         }
+        /* Simple loading text for 3D viewer */
+        #3d-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.125rem; /* text-lg */
+            font-family: 'Inter', sans-serif;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -49,7 +59,7 @@
                 An overview of team availability, project pipeline, and stake.
             </p>
 
-            <!-- New: Control Bar -->
+            <!-- Control Bar -->
             <div class="mt-6 p-4 bg-white rounded-xl shadow-lg border border-gray-200 flex flex-wrap gap-4 items-center">
                 
                 <!-- Person Selector -->
@@ -118,12 +128,13 @@
                 </div>
             </div>
 
-            <!-- New: 3D Model Viewer -->
+            <!-- 3D Model Viewer -->
             <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-200">
                 <h2 class="text-xl font-semibold text-gray-700 mb-4">
                     3D Urban Massing
                 </h2>
-                <div class="h-80 md:h-96 bg-gray-800 rounded-xl overflow-hidden">
+                <div class="h-80 md:h-96 bg-gray-800 rounded-xl overflow-hidden relative">
+                    <div id="3d-loading">Loading 3D model...</div>
                     <canvas id="3dviewer"></canvas>
                 </div>
             </div>
@@ -146,268 +157,142 @@
         document.addEventListener('DOMContentLoaded', () => {
             
             // --- Chart 1: Individual Resource Availability (Bar) ---
-            const ctx1 = document.getElementById('availabilityChart').getContext('2d');
-            new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['Person A', 'Person B', 'Person C', 'Person D', 'Person E', 'Person F'],
-                    datasets: [{
-                        label: 'Availability (%)',
-                        data: [80, 60, 100, 75, 90, 40],
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
+            try {
+                const ctx1 = document.getElementById('availabilityChart').getContext('2d');
+                if (ctx1) {
+                    new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Person A', 'Person B', 'Person C', 'Person D', 'Person E', 'Person F'],
+                            datasets: [{
+                                label: 'Availability (%)',
+                                data: [80, 60, 100, 75, 90, 40],
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` ${context.dataset.label}: ${context.parsed.y}%`;
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value + '%';
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return ` ${context.dataset.label}: ${context.parsed.y}%`;
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
                 }
-            });
+            } catch (e) {
+                console.error("Failed to load Availability Chart:", e);
+            }
 
             // --- Chart 2: 6-Month Resource Outlook (Stacked Bar) ---
-            const ctx2 = document.getElementById('outlookChart').getContext('2d');
-            const months = [];
-            const today = new Date();
-            for (let i = 0; i < 6; i++) {
-                const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
-                months.push(d.toLocaleString('default', { month: 'short' }));
-            }
-            new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [
-                        {
-                            label: 'Confirmed Work',
-                            data: [20, 25, 30, 35, 40, 40],
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
+            try {
+                const ctx2 = document.getElementById('outlookChart').getContext('2d');
+                if (ctx2) {
+                    const months = [];
+                    const today = new Date();
+                    for (let i = 0; i < 6; i++) {
+                        const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+                        months.push(d.toLocaleString('default', { month: 'short' }));
+                    }
+                    new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: months,
+                            datasets: [
+                                {
+                                    label: 'Confirmed Work',
+                                    data: [20, 25, 30, 35, 40, 40],
+                                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'Potential Work',
+                                    data: [15, 10, 10, 5, 5, 10],
+                                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                                    borderColor: 'rgba(255, 159, 64, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
                         },
-                        {
-                            label: 'Potential Work',
-                            data: [15, 10, 10, 5, 5, 10],
-                            backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                            borderColor: 'rgba(255, 159, 64, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            stacked: true,
-                        },
-                        y: {
-                            stacked: true,
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Resource Weeks'
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { stacked: true },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Resource Weeks' }
+                                }
+                            },
+                            plugins: {
+                                legend: { position: 'top' }
                             }
                         }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    }
+                    });
                 }
-            });
+            } catch (e) {
+                console.error("Failed to load Outlook Chart:", e);
+            }
 
             // --- Chart 3: Project Breakdown by Stake (Pie) ---
-            const ctx3 = document.getElementById('stakeholderChart').getContext('2d');
-            new Chart(ctx3, {
-                type: 'pie',
-                data: {
-                    labels: ['Engineering', 'Marketing', 'Sales', 'Product', 'Support'],
-                    datasets: [{
-                        label: 'Project Stake',
-                        data: [30, 20, 15, 25, 10],
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 206, 86, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(153, 102, 255, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 206, 86, 1)',
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(153, 102, 255, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
+            try {
+                const ctx3 = document.getElementById('stakeholderChart').getContext('2d');
+                if (ctx3) {
+                    new Chart(ctx3, {
+                        type: 'pie',
+                        data: {
+                            labels: ['Engineering', 'Marketing', 'Sales', 'Product', 'Support'],
+                            datasets: [{
+                                label: 'Project Stake',
+                                data: [30, 20, 15, 25, 10],
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.7)',
+                                    'rgba(54, 162, 235, 0.7)',
+                                    'rgba(255, 206, 86, 0.7)',
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(153, 102, 255, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.parsed;
-                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return ` ${label}: ${percentage}%`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // --- New: 3D Model Viewer Initialization ---
-            initThreeJS();
-
-            // --- New: Excel/CSV Button Listeners ---
-            const importButton = document.getElementById('importButton');
-            const exportButton = document.getElementById('exportButton');
-            const csvImportInput = document.getElementById('csvImport');
-
-            importButton.addEventListener('click', () => {
-                csvImportInput.click();
-            });
-
-            csvImportInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    console.log('File selected:', file.name);
-                    // In a real app, you'd use a library like SheetJS (xlsx.js) or PapaParse
-                    // to read the file content here.
-                    alert(`Selected file: ${file.name}\n(Check console for details)`);
-                }
-            });
-
-            exportButton.addEventListener('click', () => {
-                console.log('Exporting data...');
-                // In a real app, you'd gather data from your charts/tables
-                // and use a library to generate a CSV or XLSX file.
-                alert('Export button clicked. (Check console for details)');
-            });
-        });
-
-        // --- New: 3D Viewer Function ---
-        function initThreeJS() {
-            const canvas = document.getElementById('3dviewer');
-            if (!canvas) {
-                console.error("3D canvas not found");
-                return;
-            }
-            const container = canvas.parentElement;
-
-            // Scene
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x2d3748); // bg-gray-800
-
-            // Camera
-            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(15, 15, 15);
-            camera.lookAt(0, 0, 0);
-
-            // Renderer
-            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
-            
-            // Function to handle resizing
-            const resizeRenderer = () => {
-                const width = container.clientWidth;
-                const height = container.clientHeight;
-                renderer.setSize(width, height);
-                camera.aspect = width / height;
-                camera.updateProjectionMatrix();
-            };
-            resizeRenderer(); // Set initial size
-            
-            // Orbit Controls
-            const controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 20, 10);
-            scene.add(directionalLight);
-
-            // Ground Plane
-            const planeGeometry = new THREE.PlaneGeometry(30, 30);
-            const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x4a5568 }); // bg-gray-600
-            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-            plane.rotation.x = -Math.PI / 2;
-            plane.position.y = -0.5;
-            scene.add(plane);
-
-            // Urban Massing (Buildings)
-            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-            const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xe2e8f0 }); // bg-gray-200
-
-            for (let i = 0; i < 30; i++) {
-                const height = Math.random() * 8 + 2;
-                const building = new THREE.Mesh(
-                    boxGeometry.clone().scale(
-                        Math.random() * 1.5 + 0.5,
-                        height,
-                        Math.random() * 1.5 + 0.5
-                    ),
-                    buildingMaterial
-                );
-
-                building.position.set(
-                    (Math.random() - 0.5) * 25,
-                    height / 2 - 0.5,
-                    (Math.random() - 0.5) * 25
-                );
-                scene.add(building);
-            }
-
-            // Animation Loop
-            function animate() {
-                requestAnimationFrame(animate);
-                controls.update(); // for damping
-                renderer.render(scene, camera);
-            }
-            animate();
-            
-            // Handle window resize
-            // We use the container's ResizeObserver for better reliability
-            new ResizeObserver(resizeRenderer).observe(container);
-        }
-
-    </script>
-
-</body>
-
-</html>
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed;
+                                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
